@@ -1,20 +1,59 @@
-// INFO911TP.cpp : Ce fichier contient la fonction 'main'. L'exécution du programme commence et se termine à cet endroit.
-//
-
+#include <cstdio>
 #include <iostream>
+#include <algorithm>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include "ColorDistribution.h"
 
-int main()
+using namespace cv;
+using namespace std;
+
+
+int main(int argc, char** argv)
 {
-    std::cout << "Hello World!\n";
+    Mat img_input, img_seg, img_d_bgr, img_d_hsv, img_d_lab;
+    VideoCapture* pCap = nullptr;
+    const int width = 640;
+    const int height = 480;
+    const int size = 50;
+    // Ouvre la camera
+    pCap = new VideoCapture(0);
+    if (!pCap->isOpened()) {
+        cout << "Couldn't open image / camera ";
+        return 1;
+    }
+    // Force une camera 640x480 (pas trop grande).
+    pCap->set(CAP_PROP_FRAME_WIDTH, 640);
+    pCap->set(CAP_PROP_FRAME_HEIGHT, 480);
+    (*pCap) >> img_input;
+    if (img_input.empty()) return 1; // probleme avec la camera
+    Point pt1(width / 2 - size / 2, height / 2 - size / 2);
+    Point pt2(width / 2 + size / 2, height / 2 + size / 2);
+    namedWindow("input", 1);
+    imshow("input", img_input);
+    bool freeze = false;
+    while (true)
+    {
+        char c = (char)waitKey(50); // attend 50ms -> 20 images/s
+        if (pCap != nullptr && !freeze)
+            (*pCap) >> img_input;     // récupère l'image de la caméra
+        if (c == 27 || c == 'q')  // permet de quitter l'application
+            break;
+        if (c == 'f') // permet de geler l'image
+            freeze = !freeze;
+        if (c == 'v') {
+            //calcule la distribution couleur dans la partie droite et gauche de l'écran
+            //Calcule la distance entre les 2 distributions et l'affiche
+            ColorDistribution cd_left, cd_right;
+			cd_left = cd_left.getColorDistribution(img_input, Point(0, 0), Point(width / 2, height));
+			cd_right = cd_right.getColorDistribution(img_input, Point(width / 2, 0), Point(width, height));
+			float distance = cd_left.distance(cd_right);
+			cout << "Distance: " << distance << endl;
+        }
+        cv::rectangle(img_input, pt1, pt2, Scalar({ 255.0, 255.0, 255.0 }), 1);
+        imshow("input", img_input); // affiche le flux video
+    }
+    return 0;
 }
-
-// Exécuter le programme : Ctrl+F5 ou menu Déboguer > Exécuter sans débogage
-// Déboguer le programme : F5 ou menu Déboguer > Démarrer le débogage
-
-// Astuces pour bien démarrer : 
-//   1. Utilisez la fenêtre Explorateur de solutions pour ajouter des fichiers et les gérer.
-//   2. Utilisez la fenêtre Team Explorer pour vous connecter au contrôle de code source.
-//   3. Utilisez la fenêtre Sortie pour voir la sortie de la génération et d'autres messages.
-//   4. Utilisez la fenêtre Liste d'erreurs pour voir les erreurs.
-//   5. Accédez à Projet > Ajouter un nouvel élément pour créer des fichiers de code, ou à Projet > Ajouter un élément existant pour ajouter des fichiers de code existants au projet.
-//   6. Pour rouvrir ce projet plus tard, accédez à Fichier > Ouvrir > Projet et sélectionnez le fichier .sln.

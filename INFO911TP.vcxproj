@@ -137,7 +137,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ColorDistribution.cpp" />
     <ClCompile Include="INFO911TP.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ColorDistribution.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
