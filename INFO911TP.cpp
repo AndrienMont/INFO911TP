@@ -12,6 +12,7 @@ using namespace std;
 
 std::vector<ColorDistribution> col_hists;
 std::vector<ColorDistribution> col_hists_object;
+std::vector<std::vector<ColorDistribution>> all_col_hists;
 
 Mat recoObject(Mat input, const std::vector<ColorDistribution>& col_hists,
     const std::vector<ColorDistribution>& col_hists_object, const std::vector<Vec3b>& colors, const int bloc) {
@@ -40,6 +41,31 @@ Mat recoObject(Mat input, const std::vector<ColorDistribution>& col_hists,
     return output;
 }
 
+Mat recoObjectEnhanced(Mat input, const std::vector<std::vector<ColorDistribution>>& all_col_hists,
+         const std::vector<Vec3b>& colors, const int bloc) {
+    Mat output = input.clone();
+    for (int i = 0; i <= input.rows - bloc; i += bloc) {
+        for (int j = 0; j <= input.cols - bloc; j += bloc) {
+            ColorDistribution cd = cd.getColorDistribution(input, Point(j, i), Point(j + bloc, i + bloc));
+            float min_distance = std::numeric_limits<float>::max();
+            int min_index = -1;
+            for (size_t k = 0; k < all_col_hists.size(); ++k) {
+                float distance = cd.minDistance(cd, all_col_hists[k]);
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    min_index = k;
+                }
+            }
+            for (int x = i; x < i + bloc; x++) {
+                for (int y = j; y < j + bloc; y++) {
+                    output.at<Vec3b>(x, y) = colors[min_index];
+                }
+            }
+        }
+    }
+    return output;
+}
+
 int main(int argc, char** argv)
 {
     Mat img_input, img_seg, img_d_bgr, img_d_hsv, img_d_lab;
@@ -61,7 +87,7 @@ int main(int argc, char** argv)
     Point pt1(width / 2 - size / 2, height / 2 - size / 2);
     Point pt2(width / 2 + size / 2, height / 2 + size / 2);
     Mat output = img_input;
-    std::vector<Vec3b> colors = { Vec3b(255,0,0), Vec3b(255,255,0) };
+    std::vector<Vec3b> colors = { Vec3b(255,0,0), Vec3b(255,255,0), Vec3b(0,255,255)};
     bool reco = false;
     namedWindow("input", 1);
     imshow("input", img_input);
@@ -96,6 +122,7 @@ int main(int argc, char** argv)
             }
 			int nb_hists_background = col_hists.size();
 			cout << "Background histograms: " << nb_hists_background << endl;
+			all_col_hists.push_back(col_hists);
         }
         if (c == 'a') {
             ColorDistribution cd;
@@ -103,13 +130,19 @@ int main(int argc, char** argv)
 			col_hists_object.push_back(cd);
 			cout << "Object histograms: " << col_hists_object.size() << endl;
         }
+        if (c == 'n') {
+			all_col_hists.push_back(col_hists_object);
+			col_hists_object.clear();
+			cout << "Object histograms: " << all_col_hists.size() << endl;
+        }
         if (c == 'r') {
             reco = !reco;
         }
         if (reco) {
             Mat gray;
 			cvtColor(img_input, gray, COLOR_BGR2GRAY);
-			Mat reco = recoObject(img_input, col_hists, col_hists_object, colors, 8);
+			//Mat reco = recoObject(img_input, col_hists, col_hists_object, colors, 8);
+			Mat reco = recoObjectEnhanced(img_input, all_col_hists, colors, 8);
             cvtColor(gray, img_input, COLOR_GRAY2BGR);
             output = 0.5 * reco + 0.5 * img_input;
         }
