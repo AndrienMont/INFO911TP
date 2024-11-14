@@ -15,4 +15,3 @@ On peut effectuer différentes actions sur le flux :
 
 Développements ajoutés:
 - Possibilité d'ajouter plusieurs objets : en appuyant sur la touche 'n', on peut stocker plusieurs histogrammes d'objets, qui sont ensuite utilisés dans la reconnaissance. Cela permet d'avoir différentes couleurs en fonction du nombre d'objets + 1 (en comptant le fond).
-- 
