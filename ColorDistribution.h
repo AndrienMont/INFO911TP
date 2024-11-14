@@ -22,4 +22,6 @@ struct ColorDistribution {
     float distance(const ColorDistribution& other) const;
 	// Retourne la distribution de couleur entre les points p1 et p2
     ColorDistribution getColorDistribution(Mat input, Point p1, Point p2);
+	//Retourne la plus petite distance entre h et les histogrammes de col_hists
+    float minDistance(const ColorDistribution& h, const std::vector<ColorDistribution>& hists);
 };

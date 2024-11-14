@@ -51,3 +51,13 @@ float ColorDistribution::distance(const ColorDistribution& other) const {
 	}
 	return dist;
 }
+
+float ColorDistribution::minDistance(const ColorDistribution& h, const std::vector<ColorDistribution>& hists) {
+	float min = FLT_MAX;
+	for (int i = 0; i < hists.size(); i++) {
+		float d = h.distance(hists[i]);
+		if (d < min) min = d;
+	}
+	return min;
+}
+
